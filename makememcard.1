@@ -1,0 +1,59 @@
+.\" -*- nroff -*-
+.\"
+.\" nc100em  - an svgalib-based Amstrad NC100 emulator
+.\" xnc100em - an NC100 emulator for X
+.\" tnc100em - an NC100 emulator for ttys
+.\" 
+.\" Z80 emulation from `xz80', copyright (C) 1994 Ian Collier.
+.\" nc100em changes (C) 1995-1996,1999,2000 Russell Marks.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or (at
+.\" your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+.\"
+.\"
+.\" nc100em.1 (xnc100em.1, tnc100em.1) - man page
+.\"
+.TH makememcard 1 "30th November, 2000" "Version 1.2" "Emulators"
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH NAME
+makememcard \- make a 1024k memory card image
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH SYNOPSIS
+.B makememcard
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH DESCRIPTION
+Makememcard is a shell script which makes a (1024k) memory card image
+for nc100em(1). The file created is (by default)
+.IR ~/nc100/nc100.card .
+But if you'd rather have it somewhere else, you can set the
+.I NC100EM_HOME
+environment variable to the preferred path.
+.PP
+The `card' is blank, and must be formatted in nc100em before use.
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH SEE ALSO
+.IR nc100em "(1)"
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH AUTHOR
+Russell Marks (russell.marks@ntlworld.com).

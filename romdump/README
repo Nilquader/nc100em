@@ -1,0 +1,102 @@
+* -*- outline -*-
+
+	      Romdump - XMODEM transfer the NC100's ROM;
+		 works under both ZCN and the ROM OS.
+
+		    Public domain by Russell Marks
+
+
+* (Lack of) Copyright
+
+Romdump is public domain. You can do whatever you want with it.
+
+
+* NC200 support
+
+Note that romdump does not yet support the NC200; it can only be used
+for dumping an NC100's ROM.
+
+
+* About romdump
+
+Romdump lets you XMODEM transfer the NC100's 256k ROM to another
+machine. The reason I wrote it was to give people a reasonably
+straightforward way of getting a copy of their machine's ROM to use
+with my NC100 emulator, nc100em. As I say in the nc100em README:
+
+> If you own an NC100, you should be able to copy the original Amstrad
+> ROM for your own personal use with the emulator (which is capable of
+> running the ROM software) using `romdump' (see the README in the
+> romdump directory), but it's up to you to correctly observe copyright
+> law. I'm no lawyer.
+
+Romdump's XMODEM transfer code is fairly crude - it only supports the
+old XMODEM checksum transfer method - but it works pretty well in
+practice. And after all, you're only likely to run it once... :-)
+
+
+* Running romdump
+
+[NB: There is a possibility that romdump could lock up your machine if
+it gets confused (which can happen if there are a lot of errors and
+the `remote' XMODEM receive code is naive). This isn't a huge problem
+for ZCN - you could just reboot and try again. But for the ROM OS, you
+should make sure you have a current backup of any files in memory
+before running it, just in case.]
+
+To run romdump, you should transfer `romdump.bin' to your NC100. If
+you're using the ROM OS, the best way is to do an XMODEM receive from
+the appropriate word-processor menu (see the manual for details). If
+you're using ZCN, the usual way would be to use QTERM, but `rexec'
+would do in a pinch.
+
+Once romdump is across, you need to run it. On ZCN, just run it as a
+.com file (rename it if necessary). On the ROM OS, use Function-B to
+get to BBC Basic, and do `P. LOMEM'. If this is more than about 32700,
+you need to free up some low memory space (delete some files) before
+running it. Once LOMEM is low enough, do `*LOAD ROMDUMP.BIN 8000',
+then `CALL &8000'.
+
+Once running, it's the same on both the ROM OS and ZCN. It'll tell you
+to start the XMODEM receive, which you should then do. After you do
+that, it should start sending (with a display of the number of packets
+sent, which updates every 4 packets). The time it will take to send
+the ROM depends on the baud rate you're using - from roughly two
+minutes at 19200 baud, to 15 minutes for 2400 baud.
+
+When it's finished, you should have all 256k of ROM in a file. If you
+happen to have ROM v1.06 (do `ver' on ZCN to check the ROM version, or
+look through the transferred ROM for the ASCII text "ROM v"), then you
+could run `md5sum' (part of the GNU textutils package) to check that
+your ROM is the same as mine. Here's what it gave for me:
+
+b8c838100e7f46c99ec16f5abd7b0bd2  nc100.rom
+
+If you don't have this particular version of the ROM, then it will
+give a different result. A friend of mine transferred the ROM from his
+NC100 (which has ROM v1.00), and `md5sum' on that gave him:
+
+508afd0612adfc8f72d22c2646729daa  nc100.rom
+
+If your ROM doesn't match either of these, you may want to send two
+copies of the ROM and check that they are identical, just to make
+certain that the ROM file is correct. The XMODEM protocol should catch
+most transmission errors of course, so this is a bit paranoid really,
+but it can't hurt to make sure.
+
+
+* Acknowledgements
+
+The XMODEM transfer code is based on that from my `zfst' speccy +3
+terminal emulator, which in turn was loosely based on the C routines in
+xmodem 3.9, as posted to comp.sources.unix.
+
+(But I only implemented the minimum possible XMODEM protocol. :-)
+128-byte packets only, 8-bit mod 256 checksum only. This is usually
+known as `XMODEM checksum' rather than the `XMODEM CRC' or `XMODEM-1K'
+variants.)
+
+
+* Contacting the Author
+
+You can email me at russell.marks@ntlworld.com.

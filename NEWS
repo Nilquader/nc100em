@@ -1,0 +1,171 @@
+* Changes between versions   -*- mode:indented-text; mode:outline-minor -*-
+
+This file (NEWS) documents the significant changes between all
+versions of nc100em, with the newest changes first.
+
+
+* Changes in nc100em 1.2
+
+NC200 support, which you can enable using the `-2' option. It's still
+a bit experimental, but I think what's there is fully working. It
+supports (as with the NC100) serial I/O on stdin/stdout, parallel
+output, the memory card, but *doesn't* support the disk drive. Or the
+backlight. :-) (NB: Currently the NC200 isn't supported in the Xlib
+version - just in the GTK+ and svgalib versions.)
+
+GTK+ version:
+
+  Now automatically resizes window when scale is changed. Thanks to
+  Steven Flintham for prompting this.
+
+  `Mouse support', of a kind. It gives nc100em-aware programs the
+  ability to read the mouse pointer's position on the NC screen, and
+  which buttons are pressed. (May be added to other versions at some
+  point.)
+
+  It was hanging as of GTK+ 1.2.6. Fixed it, but the fix is a little
+  unsightly (it has to resize as soon as the window appears).
+
+  Now has an icon.
+
+Pound sign (XK_sterling) didn't work in X versions. Whoops. :-) Thanks
+to Steven again for pointing this out. (Also similar fix for Caps
+Lock, but while that does now kind-of-work, it doesn't work very
+well.)
+
+Doubled default refresh rate.
+
+Fuller NC100 RTC emulation, including the two spare RAM pages.
+
+Now uses value of $NC100EM_HOME (if set) instead of ~/nc100 for dir
+containing nc100.rom, nc100.ram, etc.
+
+You can now identify from an NC100 program that you're running in
+nc100em. (Though it's pretty obtuse, as it has to be - see the man
+page for details.)
+
+Previously, zcnformat had no effect if you didn't compile with
+USE_MMAP_FOR_CARD enabled.
+
+zcnren didn't previously check if the new filename was taken - it does
+now.
+
+
+* Changes in nc100em 1.1
+
+New GTK+-based version (gnc100em), supports runtime change of scale,
+and has the NC100 screen in a scrollable window, so you can use a
+scaled-up display without needing to accommodate such a wide window as
+with xnc100em.
+
+You can now set the default scale with `-S'. Only the GTK+ version
+takes notice of this currently.
+
+Added support for bitdepths other than 1-bit and 8-bit to xnc100em.
+Thanks to Steven Flintham for pointing this out (bizarrely, I seemed
+to have neglected to mention it in any docs). It's not as fast as it
+could be, but it should at least work on all bitdepths.
+
+Made xnc100em's display differential like the svgalib version, so it
+only outputs lines which need to be output.
+
+Added parallel printer support. If any printing takes place, the raw
+output is dumped in ~/nc100/printout.dat, appending output onto the
+end of the file if it already exists.
+
+The stop-dead key is now F8 in all versions, with F10 now doing the
+`nice' context-saving exit. (Using F5 for a context-saving exit still
+works though.)
+
+New `-m' option, causes modification of `colour' key messages in
+(real) ROM (no effect when using builtin ROM), to make them more
+understandable when using nc100em. For example, with `-m', nc100em
+changes "YELLOW & RED" to "INSERT & LEFT".
+
+xnc100em now supports `delete window' message from window manager - it
+acts like F10 (doing a graceful context-saving exit).
+
+Serial support is (apart from in tnc100em) no longer enabled by
+default; you have to specifically choose to have it, with the `-s'
+option. I think this makes a lot more sense than the old behaviour,
+which in retrospect was pretty broken.
+
+Fixed an embarrassing bug in xnc100em (inappropriate code left over
+from xz80) which meant you couldn't use the left shift key to
+uppercase alphabetic chars. What can I say, except possibly that I use
+the right shift key... :-) Thanks to Steven Flintham for pointing out
+this bug.
+
+Fixed the old bug where xnc100em wasn't redrawing in some
+circumstances.
+
+Added support for left-win as `Function' in the svgalib version -
+probably preferable to using Insert :-), but only works on a Win95
+keyboard. Similarly, added support for Super/Hyper modifiers as
+alternative ways of getting `Function' in the X versions - so on a
+Win95 keyboard under XFree86, you can use the win or menu keys to get
+it.
+
+Renamed svgalib version (formerly `nc100em') to `snc100em'.
+
+
+* Changes in nc100em 1.0
+
+Speed control now works. It goes at 4.606MHz with real-time interrupts
+if it can - if it can't, it slows down interrupts to match, which
+should avoid breaking anything overly sensitive on the emulated NC.
+
+Some minor glibc-related fixes. (Well, sure they're minor, but it
+wouldn't have compiled without them. ;-))
+
+nc100.{card,ram,rom} are now stored in ~/nc100.
+
+Now comes with a `romdump' utility.
+
+Added man pages.
+
+Replaced the dire `zcndisk' with `zcntools', an mtools-like set of
+utils for working with ZCN disk images. This is so much better than
+zcndisk it hurts. :-) The only real thing missing is a way for `zcnls'
+to show files in all user areas.
+
+Various changes to the svgalib version:
+
+  Supports a larger display in addition to the normal one. Use Page Up
+  to get the leftmost 320x64 part of the screen in 320x200 mode, Page
+  Down to see the rightmost 320x64, and End to return to the usual
+  display.
+
+  It now uses differential screen updating.
+
+  It's now entirely black-on-white, i.e. the NC100's screen is
+  surrounded by white rather than black.
+
+  Uses svgalib's raw keyboard support rather than librawkey.
+
+If USE_MMAP_FOR_CARD is defined, it now uses mmap() to read/write the
+card image. This means a faster start/stop, and it should only access
+parts of the card file it needs to (this is certainly the case on
+Linux, anyway). It's especially useful for zcntools.
+
+A couple of minor speedups mean it's between 2 and 5% faster.
+
+`makecard' is now `makememcard'. It now does some error checking, and
+is installed by `make install'.
+
+Disabled interrupts no longer disable screen/keyboard update. (!)
+
+Supports ROM v1.00 (it only properly supported ROM v1.06 before).
+
+tnc100em now doesn't ever save the RAM.
+
+Previously serial input could have effectively generated multiple
+bytes from only one actual input byte - fixed that.
+
+The PD ROM is now builtin.
+
+Added `-p' option, to force use of PD ROM (useful for booting a file,
+for example).
+
+Fixed a stupid bug in the builtin PD ROM, where A was corrupted by the
+power-on context restoring routine.

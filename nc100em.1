@@ -1,0 +1,512 @@
+.\" -*- nroff -*-
+.\"
+.\" nc100em - a family of Amstrad NC100 emulators:
+.\"
+.\"  gnc100em - (for X) a GTK+-based version
+.\"  snc100em - an svgalib version
+.\"  tnc100em - a tty-based version
+.\"  xnc100em - (for X) an Xlib-based version
+.\" 
+.\" Z80 emulation and Xlib code from `xz80', copyright (C) 1994 Ian Collier.
+.\" nc100em changes (C) 1995-1996,1999,2000 Russell Marks.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or (at
+.\" your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+.\"
+.\"
+.\" nc100em.1 (also [gstx]nc100em.1) - man page
+.\"
+.TH nc100em 1 "4th March, 2001" "Version 1.2" "Emulators"
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH NAME
+nc100em \- an Amstrad NC100/NC200 emulator (or rather, several of them)
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH SYNOPSIS
+.PD 0
+.B gnc100em/snc100em/tnc100em/xnc100em
+.RB [ -2hmps ]
+.RB [ -r
+.IR rate ]
+.RB [ -S
+.IR scale ]
+.RI [ file_to_boot.bin ]
+.P
+.PD 1
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH DESCRIPTION
+nc100em is an Amstrad NC100 and NC200 emulator with several variants:
+.PP
+.PD 0
+gnc100em - (for X) a GTK+-based version
+.P
+snc100em - an svgalib version (Linux only)
+.P
+tnc100em - a tty-based version
+.P
+xnc100em - (for X) an Xlib-based version (NC100 only)
+.PD 1
+.PP
+All versions apart from tnc100em can run both Amstrad's ROM software
+and ZCN, my free CP/M-like OS. (The tty version can only run ZCN.) ZCN
+is available from http://rus.members.beeb.net/zcn.html or
+ftp://ftp.ibiblio.org/pub/packages/zcn/.
+.PP
+(If you're new to nc100em and wondering how to get it going, see the
+.B SETTING UP NC100EM
+section below.)
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH OPTIONS
+.TP
+.I -2
+emulate an NC200 rather than an NC100.
+.TP
+.I -h
+gives help on command line options.
+.TP
+.I -m
+modify `colour' key messages in (real) ROM (no effect when using the
+builtin ROM), to make them more understandable when using nc100em. For
+example, "YELLOW & RED" is changed to "INSERT & LEFT". This doesn't
+yet work when emulating an NC200.
+.TP
+.I -p
+use the builtin PD ROM even if
+.I ~/nc100/nc100.rom
+is present. Can be useful when booting a file. This ROM doesn't yet
+support the NC200, and will probably lead to a crash of the emulated
+machine if enabled when using
+.RI ` -2 '.
+.TP
+.I -r
+specifies how often the screen is redrawn, measured in (10ms)
+interrupts. A value of 2 would redraw every 20ms (50 times per
+second), 4 would redraw every 40ms, etc. The default value is 5, and
+the lowest allowed 2, in all versions. (Even tnc100em lets you set a
+refresh rate, but it is ignored.)
+.TP
+.I -s
+enable emulated serial I/O on stdin/stdout. Only relevant to the X
+versions - snc100em doesn't support it, and it's always enabled in
+tnc100em.
+.TP
+.I -S
+set initial pixel scaling factor in range 1 to 4. This only has an
+effect when running gnc100em, when it sets how much the NC100 screen
+is initially scaled up.
+.TP
+.I file_to_boot.bin
+specifies a file to be loaded into memory at 100h and booted. This
+only works if you're using the builtin PD ROM (you get an error
+message if not).
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH "THE EMULATED NC100"
+Most aspects of the NC100 are emulated, including context-saving,
+memory cards, the serial port, and the parallel (printer) port. The
+only real omission is sound support (no big deal, it's only ever used
+for beeps :-)).
+.PP
+You'll probably want to disable auto-power-off, as this isn't really
+what you want when running an emulator. :-)
+.PP
+The emulated NC100 runs at 4.606MHz, and only uses as much CPU time as
+it needs to do this. If it can't run in real-time (likely on 486s, for
+example), then it slows down interrupts to match so that the emulated
+NC100 won't be affected. (However, the real-time clock always reports
+real time, so clock programs may act oddly at slow speeds.)
+.PP
+The parallel (printer) port is emulated in a quite straightforward
+fashion. If the NC100 outputs anything to the printer, this output is
+appended (verbatim) to the file
+.IR ~/nc100/printout.dat ,
+which is created if it doesn't already exist. Note that if you're
+printing from the ROM software's word processor and have the `Simple'
+printer type selected, printout is sometimes preceded by a NUL (zero)
+byte. But this doesn't seem to be a bug in nc100em - that NUL really
+.I is
+being sent to the printer! So watch out for that when treating the
+output as a plain text file.
+.PP
+How the serial port is emulated depends on the version used. In the
+svgalib version it isn't emulated. In the other versions, it's (if
+enabled) hooked up to the emulator's standard input/output. If you're
+using ZCN it can be handy to redirect output to the serial port with
+`|s' (but be sure to start up with `gnc100em -s' to allow this!), so
+you effectively have text and graphics windows. :-)
+.PP
+While there's no support for emulating a mouse connected to the serial
+port, there is a provision for nc100em-aware programs to read the
+mouse state (this is supported by ZCN's `zcnpaint' (as of ZCN 1.3),
+for example). See the
+.B MOUSE SUPPORT
+section for details.
+.PP
+tnc100em (the tty version) is a little strange, so some discussion of
+that is needed here. The way it works is as above - the emulated
+serial port is hooked up to stdin/stdout. When it starts up, tnc100em
+emulates both shifts being held for a short while, then types `|s'
+then enter. If you're running ZCN, this is enough to reboot and
+redirect console I/O to the serial port. Obviously, this
+.B only
+works with ZCN!
+.PP
+As of ZCN 1.2 you can exit tnc100em with the `off' command. With
+earlier versions, you'll have to kill tnc100em off by hand with
+something like `killall tnc100em' from another console/tty.
+.PP
+Note that the RAM is never saved when using tnc100em, to avoid
+possible problems with the output having been redirected to the serial
+port.
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH "NC200 SUPPORT"
+As with the NC100, the memory card, and serial and parallel ports are
+supported (and in the same way). The clock chip emulation is a little
+simplistic, but it seems to work fine with the ROM software. The main
+omissions are support for the disk drive, and for the backlight. :-)
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH "SETTING UP NC100EM"
+This section covers setting up for NC100 emulation; for NC200 details,
+see
+.BR "NC200 SETUP" .
+.PP
+The first thing to do is run `makememcard' to make a 1024k memory card
+image. You don't
+.B have
+to do this, but the NC is generally a lot nicer to use with a memory
+card. Besides which, you need one to run ZCN. ;-)
+.PP
+Having got that out of the way, there are three main ways to use
+nc100em - using ZCN with the builtin PD ROM, using ZCN with the
+Amstrad ROM, or using the ROM software with the Amstrad ROM.
+.PP
+.SS ZCN with the builtin ROM
+Just run it with (e.g.) `gnc100em zcn.bin', where
+.I zcn.bin
+is from the
+.I bin
+directory in the ZCN distribution. (Note that
+.I zcn.bin
+is read as a normal file from the usual Unix filesystem, not from the
+memory card image!) This boots ZCN. If you use F10 (or gnc100em's
+`Exit nicely' button) to exit (which saves context), you shouldn't
+need to run it with `zcn.bin' specified again unless you want to
+cold-boot.
+.PP
+Once you've booted ZCN for the first time, go through
+.I doc/zcn.txt
+in the ZCN distribution. You'll probably want to skip most of the
+installation stuff. `Installation epilogue' is a good place to stop
+skipping. For reference, your `memory card' is 1024k, and you'll want
+to format drives a:, b:, c: and d:.
+.PP
+To transfer files to/from the memory card image, use `zcntools'. See
+the man page for details. You should exit any running emulator before
+using zcntools.
+.PP
+Note that anything in ZCN which requires the Amstrad ROM is bound to
+have problems with the builtin ROM (see below).
+.\"
+.\"
+.SS ZCN with the Amstrad ROM
+There are some limited benefits to running ZCN with the real ROM - if
+you want bbcbas, bbcmin, calc, runrom, spell, or spellwd to work, you
+.B must
+use the real ROM. Most of them will crash horribly without it.
+.PP
+Just make sure you stick with one ROM or the other - the
+context-saving works slightly differently with each. If you really
+want to switch ROMs, then (for a builtin to Amstrad ROM switch) delete
+.IR ~/nc100/nc100.ram ,
+or (for an Amstrad to builtin ROM switch) cold-boot as described
+above.
+.PP
+As for how to set it up, things are rather more complicated than with
+the builtin ROM, but here's a guide:
+.PP
+First, boot ZCN with (e.g.) `gnc100em -p zcn.bin'. Then make the
+memory card bootable with `sys a:'. Now quit the emulator, remove any
+~/nc100/nc100.ram (since we're about to switch ROMs), and make sure
+that the nc100.rom you transferred with romdump (if you haven't done
+that yet, do it now :-)) is in ~/nc100.
+.PP
+Now do plain `gnc100em' (i.e. no args); you should get the ROM
+software's main menu screen. Do `Function-X' (by doing Insert-X, using
+Insert like a shift key), which should finally boot ZCN. Quit with
+F10, and that should save context so you won't have to do the
+`Function-X' next time.
+.PP
+Yep, sure is easy when you know how (cough, splutter). :-)
+.\"
+.\"
+.SS ROM software with the Amstrad ROM
+This is easy enough - just get the 256k of ROM across from your NC100
+with romdump (this takes a while...) as
+.IR ~/nc100/nc100.rom ,
+then run nc100em. The only problem is, there's no direct way to
+transfer files to/from the ROM software. (You could print files to get
+them out, which does work, but isn't that great and only transfers
+files one way.)
+.PP
+If you're prepared to run ZCN, at least for file transfer, you could
+use its `runrom' and `rrxfer' programs to transfer files to the ROM
+OS. This would be painfully indirect, but should work.
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH "NC200 SETUP"
+The only option with the NC200, for now at least, is to get a copy of
+the NC200 ROM and run that. You could do this with romdump - if it
+supported the '200, which it doesn't yet. :-) So I'll gloss over that,
+but once you have the ROM move it to
+.IR ~/nc100/nc200.rom ,
+then run nc100em with the
+.RI ` -2 '
+option.
+.PP
+The same problem applies as with the ROM OS on the NC100 -
+transferring files to/from the machine isn't easy. The nicest way to
+do this would probably be via an emulated floppy, but I don't know how
+likely I am to implement that...
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH "KEYS, KEY MAPPING, AND BUTTONS"
+.TP
+.I F10
+quit [gsx]nc100em by causing an NMI, just like pressing the power
+on/off button on a real NC100. I recommend you use this to exit. In
+the X versions, your window manager's `close window' button (or menu
+option) will have this effect too, and in gnc100em, the `Exit nicely
+(NMI)' button also has this effect.
+.TP
+.I F5
+does the same as F10 (for `compatibility' with previous versions).
+.TP
+.I F8
+quit [gsx]nc100em by just stopping dead. This doesn't cause an NMI,
+and the RAM isn't saved. Useful if the emulated NC crashes, as in that
+case an NMI may not be enough to exit. (The gnc100em `Abrupt stop'
+button also has this effect.)
+.PP
+In snc100em (the svgalib version), there are these additional keys:
+.TP
+.I Page Up
+switch to 320x200 mode, and show the leftmost 320x64/128.
+.TP
+.I Page Down
+the same, but show the rightmost 320x64/128.
+.TP
+.I End
+return to the normal display.
+.PP
+In gnc100em (the GTK+ version), the display is scrollable so you can
+use a window smaller than the NC100's display, should you want to.
+This can be useful when you're using a scaled-up display. There are
+also two buttons in this version which have yet to be mentioned:
+.TP
+.I Scale down
+scale the NC100 screen down, so the display is smaller.
+.TP
+.I Scale up
+No prizes for guessing what this does.
+.PP
+Those keys which also exist on the NC100 are mapped as-is, with other
+mapped keys being:
+.TP
+.IR Alt / Meta
+emulated as Symbol
+.TP
+.I Backspace
+emulated as `<-Del'
+.TP
+.I Delete
+emulated as `Del->'
+.TP
+.I `
+emulated as Menu
+.TP
+.I Esc
+emulated as Stop
+.TP
+.I Insert
+emulated as Function (it's odd, but I ran out of keys :-))
+.PP
+(Note that if you're running the svgalib version and are using a Win95
+keyboard, you can use the left Windows key as Function instead; this
+has the advantage of being in roughly the right place, and it's a
+whole lot more convenient than using Insert, that's for sure. :-)
+.PP
+In addition, the X versions allow any `Super' and/or `Hyper' modifier
+keys to be used as Function.)
+.PP
+No other keys are mapped. Some of the mappings probably assume a UK
+keyboard layout, I'm afraid, and some keys may be inaccessible on
+other layouts.
+.PP
+In the X versions, both Backspace and Delete are actually mapped to
+`<-Del'. This is bogus, but saves trouble with funny setups (like on
+Linux - X setups on Linux commonly follow the traditional PC
+backspace/delete model, which can be handy but can also be a pain).
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH "MOUSE SUPPORT"
+This section is pretty technical, and you should probably skip it
+unless you want to read the mouse state from an NC100 program running
+in the emulator.
+.PP
+There are two issues involved with reading the mouse position etc.;
+firstly, how to identify that you're running in nc100em, and secondly,
+how to read the actual data. To find out if you're running under
+nc100em, do this:
+.PP
+ld a,9
+.br
+out (0ddh),a
+.br
+in a,(0dch)
+.PP
+If A is then 100 (decimal), you're in nc100em.
+.PP
+To read the mouse position and buttons, you need to use ports 2Ah to
+2Dh. Read 2Ah first, as that grabs the current mouse state for later
+reading via the other ports. It also reads the buttons - the format is
+slightly complicated though, so more on that below.
+.PP
+Reading 2Bh returns the low byte of the x position onscreen, and
+reading 2Ch returns the high byte. Together these give an x position
+in the range 0..479. Reading 2Dh returns the y position onscreen, in
+the range 0..63.
+.PP
+Returning to the format of the byte that reading 2Ah gives you, the
+bit layout is `-lmrmlrl', or more verbosely:
+.TP
+.I bit 7
+unused (zero)
+.TP
+.I bit 6
+1 if left button is pressed
+.TP
+.I bit 5
+1 if middle button is pressed
+.TP
+.I bit 4
+1 if right button is pressed
+.TP
+.I bit 3
+1 if middle button is pressed
+.TP
+.I bit 2
+1 if left button is pressed
+.TP
+.I bit 1
+1 if right button is pressed
+.TP
+.I bit 0
+1 if left button is pressed
+.PP
+The purpose of the wide duplication of the bits is to directly provide
+the program with the most likely bit layouts for button state - `lmr',
+`rml', `lr', and `rl' - requiring only an AND and the odd bit-shift.
+.PP
+Currently, only the GTK+ version supports this mouse-state-reading
+scheme. (Technically, the others support it too, but they always
+return zero from ports 2Ah..2Dh.)
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH FILES
+The files mentioned below are assumed to be in ~/nc100 by default, but
+their location can be changed by setting the
+.I NC100EM_HOME
+environment variable to the preferred path. When run, nc100em will
+create this dir if it doesn't yet exist.
+.PP
+.TP
+.I ~/nc100/nc100.rom
+this should be a copy of Amstrad's NC100 ROM. If not present, a
+builtin PD ROM is used instead; this is only capable of running ZCN,
+though.
+.TP
+.I ~/nc100/nc100.ram
+the NC100's RAM. This is saved when the ROM turns off the emulated
+NC100. If this is not present when the emulator starts up, blank RAM
+is used instead.
+.TP
+.I ~/nc100/nc100.card
+the PCMCIA memory card image. If not present, no card is present in
+the emulated NC100. The size should be a multiple of 16k, and it
+should be no larger than 1024k. (You can use `makememcard' to make a
+blank 1024k memory card image.)
+.TP
+.I ~/nc100/printout.dat
+if the emulated NC100 prints anything, it's appended to this file
+(which is created if not already present).
+.TP
+.I ~/nc100/nc200.*
+when running in NC200 mode, the various files which start with
+.I nc100
+are no longer used; instead,
+.IR nc200 -prefixed
+filenames are used, such as
+.IR nc200.card .
+These files remain in
+.IR ~/nc100 ,
+though (confusingly :-)).
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH BUGS
+When using a serial console, ZCN's `bbcbas' responds to input
+annoyingly slowly for some reason. (This also affects `bbcmin'.)
+Everything else seems to be fine, though.
+.PP
+The serial support can't be used for file transfer, nor for a mouse.
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH SEE ALSO
+.IR zcntools "(1),"
+.IR makememcard "(1),"
+.IR z81 "(1),"
+.IR xz80 "(1)"
+.PP
+.I doc/zcn.txt
+in the ZCN distribution.
+.PP
+The
+.RI ` cpm '
+CP/M emulator (no man page).
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH AUTHOR
+Ian Collier wrote the Z80 emulation and the Xlib code; I lifted it
+from his `xz80' Spectrum emulator.
+.PP
+Russell Marks (russell.marks@ntlworld.com) wrote the rest, including
+the NC100/NC200 emulation.

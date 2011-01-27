@@ -1,0 +1,514 @@
+org 08000h
+
+;initial bit may be running at 8000h, or at 100h.
+ld a,(066h)
+cp 0f7h
+jp nz,start
+
+;if on ZCN, copy the code up first.
+ld hl,00100h
+ld de,08000h
+ld bc,01000h
+ldir
+jp start
+
+start:
+call serial_start
+
+ld hl,msending
+call strprint
+
+xor a
+ld (romnum),a
+ld hl,0
+ld (romofs),hl
+
+call xmdmput
+
+ld hl,mdone
+call strprint
+
+call serial_stop
+
+;XXX any cleanup needed here?
+ret
+
+
+romnum: defb 0		;current ROM page number
+romofs:	defw 0		;offset within ROM romnum
+
+;xmodem send buffer
+blockbuf: defs 131
+
+msending:
+defb 'Starting XMODEM transfer of ROM - start the receive now.'
+defb 13,10,13,10,0
+
+moutof:
+defb '/2048',0
+
+mdone:
+defb 13,10,13,10,'done.',13,10,0
+
+
+;print asciiz string at hl.
+;af/bc/de/hl corrupt
+strprint:
+ld a,(hl)
+and a
+ret z
+push hl
+call outchar
+pop hl
+inc hl
+jr strprint
+
+
+;get next 128 bytes from the ROM.
+getrompkt:
+ld a,(romnum)
+call pagemem
+
+ld hl,(romofs)
+ld de,04000h
+add hl,de
+ld de,blockbuf+2
+ld bc,128
+ldir
+
+ld a,041h
+call pagemem
+
+ld hl,(romofs)
+ld de,128
+add hl,de
+ld (romofs),hl
+bit 6,h		;set if it's reached 4000h
+ret z
+
+ld hl,0
+ld (romofs),hl
+ld hl,romnum
+inc (hl)
+ret
+
+
+;page in ROM/RAM page in A at 4000h-7fffh.
+;all regs preserved.
+pagemem:
+di
+out (011h),a	;page in at 4000h-7fffh
+ld (0b001h),a	;needed on ROM OS and harmless on ZCN
+ei
+ret
+
+
+getbyte:
+push bc
+push de
+push hl
+ld a,(066h)
+cp 0f7h
+jr nz,rom_getbyte
+
+ld c,3
+call 5
+pop hl
+pop de
+pop bc
+ret
+
+rom_getbyte:
+call 0b85dh
+jr nc,rom_getbyte
+pop hl
+pop de
+pop bc
+ret
+
+
+
+putbyte:
+push bc
+push de
+push hl
+ld e,a
+ld a,(066h)
+cp 0f7h
+jr nz,rom_putbyte
+
+ld c,4
+call 5
+pop hl
+pop de
+pop bc
+ret
+
+rom_putbyte:
+push de
+ld a,e
+call 0b863h
+pop de
+jr nc,rom_putbyte
+pop hl
+pop de
+pop bc
+ret
+
+
+;need to turn on/off serial stuff on ROM OS
+
+serial_start:
+ld a,(066h)
+cp 0f7h
+ret z
+jp 0b85ah
+
+serial_stop:
+ld a,(066h)
+cp 0f7h
+ret z
+jp 0b86ch
+
+
+
+;output char in A
+;af/bc/de/hl corrupt
+outchar:
+ld e,a
+ld a,(066h)
+cp 0f7h
+ld a,e
+jp nz,0b833h	;ROM OS `txtoutput'
+
+ld c,2		;ZCN bconout
+jp 5
+
+
+
+;remainder of file is xmodem stuff, based on zfst's xmodem send code.
+
+;config
+max_retry equ 10
+
+msg_soh equ 1
+msg_nak equ 015h
+msg_ack equ 6
+msg_eot equ 4
+msg_can equ 018h
+
+retries: defb 0
+seqnum: defb 1
+oldsp: defw 0
+
+pktnum: defw 0
+pkterr: defw 0
+
+addheadr: defb 0	;1 if we want to add a header
+headtype: defb 0	;type of header to add (0=basic, 3=code)
+
+
+
+;send two CAN's to abort send
+xscancan:
+ld a,msg_can
+call putbyte
+ld a,msg_can
+call putbyte
+
+;falls through
+
+;stop send without cancelling
+putstop:
+ld sp,(oldsp)
+and a		;return nc (it didn't work)
+ret
+
+
+
+xmdmput:
+ld (oldsp),sp
+
+ld a,1
+ld (seqnum),a
+ld hl,1
+ld (pktnum),hl
+dec l
+ld (pkterr),hl
+xor a
+ld (retries),a
+
+;wait for receiver to send startup character
+;we respond to NAK,CAN,'C' or 'K' (though the latter two won't
+; actually select CRC or 1K packets we need to respond to them)
+
+putwslp:
+call getbyte
+cp msg_nak
+jr z,putwsgot
+cp msg_can
+jr z,putwsgot
+cp 'C'
+jr z,putwsgot
+cp 'K'
+jr z,putwsgot
+jr putwslp
+
+putwsgot:
+cp msg_can
+jr nz,xsloop
+ld b,200	;give 'em 2 seconds
+putwslp2:
+halt
+call getbyte
+cp msg_can
+jp z,putstop	;exit on CAN-CAN
+djnz putwslp2
+
+;sod it, just carry on anyway
+
+;packet-sending loop
+xsloop:
+;if (romnum) has reached 16, we're done.
+ld a,(romnum)
+cp 16
+jp z,putexit
+
+;fill xmodem buffer
+call getrompkt
+
+;put seqnum (and complement) in
+ld a,(seqnum)
+ld hl,blockbuf
+ld (hl),a
+cpl
+inc hl
+ld (hl),a
+;do checksum
+ld b,128
+xor a
+putchklp:
+inc hl
+add a,(hl)
+djnz putchklp
+inc hl
+ld (hl),a
+
+;send packet
+putpkt:
+ld a,msg_soh
+call putbyte
+ld hl,blockbuf
+ld b,131
+putpktlp:
+ld a,(hl)
+call putbyte
+inc hl
+djnz putpktlp
+
+;get response
+ld b,250	;give 'em five seconds before re-sending packet
+putrsplp:
+halt
+call getbyte
+cp msg_nak
+jr z,reputpkt	;resend packet
+cp msg_ack
+jr z,putnext
+djnz putrsplp
+
+;timeout if we get here - resend packet
+reputpkt:
+call xrserror
+jr putpkt
+
+putnext:
+push de
+call xrsupdt
+pop de
+ld hl,seqnum
+inc (hl)
+ld hl,(pktnum)
+inc hl
+ld (pktnum),hl
+jp xsloop
+
+putexit:
+ld a,msg_eot
+call putbyte
+
+putndlp:
+ld b,200	;repeat EOT every two seconds until ACK is received
+putndlp2:
+halt
+call getbyte
+cp msg_ack
+jr z,putdone
+djnz putndlp2
+ld a,msg_eot	;send another EOT
+jr putndlp
+
+putdone:
+;success!
+scf
+ret
+
+
+xrserror:
+;XXX currently ignores errors
+ret
+
+
+;update xmodem receive screen info
+xrsupdt:
+;only do it every 4 packets
+ld a,(pktnum)
+and 3
+ret nz
+
+ld a,13
+call outchar
+ld de,(pktnum)
+call dispdec
+ld hl,moutof
+call strprint
+ret
+
+
+;stuff from zcnlib (basically just dispdec bits)
+
+;divide
+;gives z1=x/y and z2=x mod y
+;entry: hl=x, de=y
+;exit:  hl=z1 (result), de=z2 (remainder)
+;af/bc corrupt
+;I've switched to a non-undocumented-opcode-using version, so
+; programs using it work under the Linux 'cpm' emulator. It's probably
+; about the same speed, anyway. And this version doesn't need ix,
+; which is handy.
+dividey: defw 0
+divide:
+ld b,h
+ld c,l
+;see if we're trying to divide by zero
+ld a,d
+or e
+ret z
+
+ld (dividey),de
+
+ld de,0
+ld hl,0
+ld a,16
+
+dvlp:
+push af
+and a
+rl l
+rl h
+
+and a
+rl e
+rl d
+
+bit 7,b
+jr z,dvs1
+
+ld a,1
+or l
+ld l,a
+
+dvs1:
+push hl
+and a
+push de
+ld de,(dividey)
+sbc hl,de
+pop de
+jp m,dvs2
+
+;nasty! fiddle the stack
+ex (sp),hl
+
+ld a,1
+or e
+ld e,a
+
+dvs2:
+pop hl
+
+and a
+rl c
+rl b
+
+pop af
+dec a
+jr nz,dvlp
+
+;finally! got the results.
+ex de,hl
+;exit: hl=result, de=remainder
+ret
+
+
+numtmp: defb '0000000000000000$'	;16 zeroes and '$'
+
+;convert number in de to ascii in internal buffer
+;entry: de=number
+;exit:  de=addr of number in internal buffer, '$' terminated
+itoa:
+ld b,10
+;FALLS THROUGH
+
+;call here for routine with functionality as above but with b=base
+
+;convert number in de to ascii, in given base (unsigned)
+;entry: de=number, b=base (from 2 to 36)
+;exit: af/bc/hl corrupt
+itoabase:
+ld hl,numtmp+16
+ld a,'$'
+ld (hl),a
+
+dispnlp:
+push bc
+push hl
+ex de,hl
+
+ld e,b
+ld d,0
+call divide
+
+ld a,e
+add a,48
+cp 58
+jr c,dispn1
+add a,7		;compensate for >=10
+dispn1:
+
+ex de,hl	;so de now is result of division
+pop hl
+pop bc
+dec hl
+ld (hl),a
+ld a,d
+or e
+jp nz,dispnlp
+
+ex de,hl
+ret
+
+
+;display number in de, in decimal
+dispdec:
+call itoa
+ld a,(066h)
+cp 0f7h
+ld c,9
+jp z,5		;output string if ZCN
+
+;ROM OS has a more sensible asciiz output function...
+xor a
+ld (numtmp+16),a
+ex de,hl	;needs addr in hl, not de
+jp 0b81eh

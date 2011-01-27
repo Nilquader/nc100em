@@ -1,0 +1,93 @@
+.\" -*- nroff -*-
+.\"
+.\" zcntools.1 - man page for zcntools
+.\"
+.TH zcntools 1 "4th March, 2001" "Version 1.2" "Emulators"
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH NAME
+.\" must be one line
+zcntools \- mtools-like utils for reading/writing an nc100em memory card file in ZCN format
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH SYNOPSIS
+.PD 0
+.B zcncat
+.I du:file
+.P
+.B zcndf
+.P
+.B zcnformat
+.I d:
+.P
+.B zcnget
+.I du:filespec dir
+.P
+.B zcninfo
+.P
+.B zcnls
+.RB [ -l ]
+.RI [ du: ]
+.P
+.B zcnput
+.I file(s) du:
+.P
+.B zcnren
+.I du:file newname
+.P
+.B zcnrm
+.I du:filespec
+.P
+.B zcntools
+.P
+.B zcnzero
+.P
+.PD 1
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH DESCRIPTION
+zcntools is a mtools-like program for reading/writing an NC100 memory
+card image as used by nc100em, which has drives in ZCN format. (ZCN is
+a free CP/M-like OS for the NC100.)
+.PP
+It does different things depending on the program name it's run with -
+for example, `zcnls b:' lists the files on drive B: user 0 of the
+card, and `zcnget "*.com" .' copies all COM files on drive A: user 0
+to the current directory.
+.PP
+The differing functions should be fairly self-explanatory to anyone
+familiar with ZCN - failing that, try running `zcntools' for a very
+brief summary.
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH FILES
+.TP
+.I ~/nc100/nc100.card
+the default location of the PCMCIA memory card image used. The
+directory it's in can be changed via the
+.I NC100EM_HOME
+environment variable (see
+.IR nc100em (1)).
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH BUGS
+This isn't the most comprehensive man page ever. :-)
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH SEE ALSO
+.IR nc100em "(1),"
+.IR makememcard "(1)"
+.PP
+.I doc/zcn.txt
+in the ZCN distribution.
+.\"
+.\"------------------------------------------------------------------
+.\"
+.SH AUTHOR
+Russell Marks (russell.marks@ntlworld.com).

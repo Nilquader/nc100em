@@ -1,0 +1,408 @@
+2001-03-04  Russell Marks  <russell.marks@ntlworld.com>
+
+	* Version 1.2.
+
+	* XFree86 may not be set to map any Windows key to Super (this
+	certainly doesn't happen for me) - fixed man page to reflect that.
+
+	* makememcard.sh: it's `makememcard', not `makecard'. :-)
+
+2000-12-01  Russell Marks  <russell.marks@ntlworld.com>
+
+	* nc100em.1: was using `-' in name line rather than `\-'.
+
+	* zcntools.c (zcnren_main): didn't check if the new filename was
+	already taken - does now.
+
+	* common.c (loadrom): checked if I still need the RTC-related
+	patch for ROM v1.00 - unfortunately, I do.
+	(rtc200_inout): NC200 ROM no longer asks for you to set the time
+	on booting, which it always used to if you hadn't enabled context
+	saving. Thanks to Kev Thacker for spotting this problem.
+
+2000-11-30  Russell Marks  <russell.marks@ntlworld.com>
+
+	* makememcard.sh: now uses $NC100EM_HOME if set.
+
+	* libdir.c (libdir): now uses value of $NC100EM_HOME instead of
+	~/nc100 if set.
+
+2000-06-29  Russell Marks  <russell.marks@ntlworld.com>
+
+	* NEWS: rearranged to match my more usual format for such files.
+
+2000-06-19  Russell Marks  <russell.marks@ntlworld.com>
+
+	* Printing (parallel output) now works on the NC200.
+
+	* z80.c: NC200 serial input works now. It seems a bit slow in the
+	ROM's terminal program, but I can't tell whether that's my fault
+	or the terminal program's, what with me never having used an NC200
+	and all. :-)
+
+	* common.c: ok, it seems I was wrong about the NC200's clock chip.
+	It seems it's *not* the same as on the NC100 (though accessed
+	differently) - if nothing else, clock and alarm data seem to be
+	interleaved, and it deals in bytes not nibbles. So gave up on
+	making it work like the NC100 code, and reverse-engineered enough
+	to get the ROM's clock-reading working (I think).
+
+	* First stab at NC200 support, which you can enable using the
+	`-2' option. Thanks to Trevor Gowen for helping with this.
+	It's basically working, but a lot of things are shaky at the
+	moment (e.g. the clock is completely screwed up :-)), and
+	various things are unsupported (e.g. the disk drive, though
+	the memory card works). I haven't added NC200 support to the
+	Xlib version (just the GTK+ and svgalib ones); I probably
+	won't unless anyone really wants it in that.
+
+	* common.c: got rid of `-H', which was more trouble than it was
+	worth.
+
+1999-12-07  Russell Marks  <rus@cartman>
+
+	* gtkmain.c: it was hanging on GTK+ 1.2.6. Fixed it, but I no
+	longer seem to be able to determine the height of the scrollbar
+	before showing it. The current kludge is to show it at the right
+	size without compensating for the scrollbar size, then immediately
+	resize to compensate. It's awful but it's better than hanging. :-(
+
+1999-11-05  Russell Marks  <rus@cartman>
+
+	* Doubled default refresh rate (from every 10 ints to every 5).
+	Using 10 made it a bit clunky and probably wasn't much faster in
+	most cases anyway.
+
+	* common.c: mouse support, of a kind. It gives nc100em-aware
+	programs the ability to read the mouse pointer's position on the
+	NC screen, and which buttons are pressed. I've just changed ZCN's
+	zcnpaint (really zcnlib's mouse.z, but zcnpaint is the main `user'
+	of that) to detect nc100em and use this approach and it works
+	pretty well. (And it doesn't lose sync with the real pointer, as a
+	serial mouse emulation probably would have.) It's only supported
+	in the GTK+ version for now.
+
+	* common.c: you can now identify from an NC100 program that you're
+	running in nc100em. The way the NC100's bus seems pretty `floaty'
+	when idle made designing a check which works reliably surprisingly
+	difficult, so I ended up having to abuse the RTC :-), hence the
+	earlier RTC update. From a program you need to `ld a,9', `out
+	(0ddh),a', `in a,(0dch)' - then if A is 100 (decimal) you're
+	running in nc100em. (FWIW, on an NC you'll get something with the
+	low four bits zero.)
+
+	* common.c: fuller RTC emulation, including the two spare RAM
+	pages. It's still a bit limited, but it's not easy to see how to
+	support alarms, for example. I s'pose I could use `at' or
+	something, but... :-)
+
+1999-11-04  Russell Marks  <rus@cartman>
+
+	* gtkmain.c: now automatically resizes window when scale is
+	changed. Thanks to Steven again for prompting this.
+
+1999-11-02  Russell Marks  <rus@cartman>
+
+	* common.c: corrected a couple of RTC-related comments.
+
+1999-10-12  Russell Marks  <rus@cartman>
+
+	* zcntools.c: formatdrive() didn't used to set card_changed, so
+	zcnformat had no effect if you didn't compile with
+	USE_MMAP_FOR_CARD enabled.
+
+1999-09-30  Russell Marks  <rus@cartman>
+
+	* Pound sign (XK_sterling) didn't work in X versions. Whoops. :-)
+	Thanks again to Steven Flintham. (Similar fix for Caps Lock, but
+	while that does now kind-of-work, it doesn't work very well.)
+
+1999-08-19  Russell Marks  <rus@cartman>
+
+	* gtkmain.c: now sets icon (nc100.xpm).
+
+	* zcntools.c: similar change.
+
+	* z80.c: tiny change to avoid pedantic egcs warning (`ambiguous'
+	else).
+
+1999-07-10  Russell Marks  <rus@cartman>
+
+	* gtkmain.c: probably don't need to include sys/time.h twice,
+	right? :-) Ditto for xmain.c.
+
+1999-07-08  Russell Marks  <rus@cartman>
+
+	* Version 1.1.
+
+	* common.c: new `-m' option, causes modification of `colour' key
+	messages in ROM (no effect when using builtin ROM), to make them
+	more understandable when using nc100em. For example, with `-m',
+	nc100em changes "YELLOW & RED" to "INSERT & LEFT".
+
+	* Added parallel printer support. If any printing takes place, the
+	raw output is dumped in ~/nc100/printout.dat, appending output
+	onto the end of the file if it already exists. You could then
+	print this, or, um, something else. :-)
+
+	* The stop-dead key is now F8 in all versions (to keep it out of
+	the way a bit), with F10 doing the `nice' context-saving exit.
+	(Using F5 for a context-saving exit still works though.)
+
+	* TTY_SERIAL is no longer optional. Since it's not enabled by
+	default any more (except in the tty version, where it's required
+	for the thing to work at all! :-)), there's no reason not to have
+	it compiled in.
+
+1999-07-07  Russell Marks  <rus@cartman>
+
+	* common.c: made usage message a bit more accurate for the GTK+
+	version, which now supports `-H' to list standard GTK+ options
+	that it automagically accepts (things like `--display').
+
+	* gtkmain.c: got a clue and used an image rather than a
+	pixmap. Makes it a lot faster. :-) It's now about the same
+	speed as the Xlib version. It also now uses a more precisely
+	incremental update method, updating the minimum (byte-aligned)
+	rectangle necessary, rather the minimum number of (full-width)
+	lines.
+
+1999-07-05  Russell Marks  <rus@cartman>
+
+	* nc100em.1: fixed some bugs. Most notably, the default refresh
+	rate is *10*, not 2!
+
+	* Renamed svgalib version (formerly `nc100em') to `snc100em', to
+	avoid the annoying confusion between nc100em (all versions
+	generically) and, er, nc100em (previously, the svgalib version).
+	Renamed main.c to smain.c to reflect this.
+
+	* common.c: you can now set the default scale with `-S'. Only the
+	GTK+ version takes notice of this currently.
+
+	* Makefile: er, no, they won't be compiling xz81 I'd have thought.
+	This is nc100em you eeeediot! :-)
+
+	* z80.c: fixed a race condition when waiting for signal, but in
+	practice it must have been very rare and you'd probably not have
+	noticed it anyway (you'd have `lost' an interrupt, effectively).
+
+	* common.c: now assumes the screen address is F000h when booting,
+	which makes it look a bit less messy (particularly in the GTK+
+	version).
+
+	* gtkmain.c: GTK+-based version (gnc100em), supports runtime
+	change of scale, and has the NC100 screen in a scrollable
+	window, so you can use a scaled-up display without needing to
+	accommodate such a wide window as with xnc100em.
+
+1999-06-17  Russell Marks  <rus@cartman>
+
+	* xmain.c: added support for `delete window' message from
+	window manager - it acts like F5 (doing a graceful
+	context-saving exit). (The code is pinched from dosemu, which
+	in turn pinched it from xloadimage. :-))
+
+	* xmain.c: X version doesn't have serial support always enabled
+	any more. You have to specifically choose to have it, with the
+	`-s' option. I think this makes a lot more sense than the old
+	behaviour, which in retrospect was pretty broken.
+
+	* README: changed ftp.nvg.unit.no reference to URL format.
+
+1999-06-15  Russell Marks  <rus@cartman>
+
+	* xmain.c: fixed the old bug where the X version wasn't redrawing.
+	This was due to Expose events on the image window not being
+	propagated to the parent (the slightly larger `borderwin').
+
+1999-06-11  Russell Marks  <rus@cartman>
+
+	* README: removed slightly unfair comment about the ROM not being
+	any good. Also corrected IMC reference in copyright - a fair chunk
+	of the X code is his too, not just the Z80 emulation.
+
+1999-05-29  Russell Marks  <rus@lifeson>
+
+	* common.c: gave IMC credit in usage message, and mentioned
+	default refresh rate for `-r'.
+
+1999-05-24  Russell Marks  <rus@lifeson>
+
+	* xmain.c: made display differential like the svgalib version, so
+	it only outputs lines which need to be output.
+
+	* nc100em.1: clarified setup instructions slightly.
+
+1999-05-22  Russell Marks  <rus@lifeson>
+
+	* xmain.c: added support for bitdepths other than 1-bit and
+	8-bit. Thanks to Steven Flintham for pointing this out
+	(bizarrely, I seemed to have neglected to mention it in any
+	docs). It's not as fast as it could be, but it should at least
+	work on all bitdepths.
+
+1999-05-21  Russell Marks  <rus@lifeson>
+
+	* xmain.c: fixed an embarrassing bug (inappropriate code left over
+	from xz80) which meant you couldn't use the left shift key to
+	uppercase alphabetic chars. What can I say, except possibly that I
+	use the right shift key... :-) Thanks to Steven Flintham for
+	pointing out this bug. Also added support for Super/Hyper
+	modifiers as alternative ways of getting `Function' - so on a
+	Win95 keyboard under XFree86, you can use the win or menu keys to
+	get it.
+
+1999-04-24  Russell Marks  <rus@lifeson>
+
+	* main.c: added support for left-win as `Function' - probably
+	preferable to using Insert :-), but only works on a Win95
+	keyboard.
+
+1999-04-11  Russell Marks  <rus@lifeson>
+
+	* Version 1.0.
+
+	* zcntools.c: created, based on zcndisk. An mtools-like set of
+	utils for working with ZCN disk images. This is so much better
+	than zcndisk it hurts. :-) The only real thing missing is a way
+	for `zcnls' to show files in all user areas.
+
+1999-04-10  Russell Marks  <rus@lifeson>
+
+	* common.c: previously serial input could have effectively
+	generated multiple bytes from only one actual input byte.
+
+	* Added man pages.
+
+	* main.c: tnc100em now doesn't ever save the RAM.
+
+	* `makecard' is now `makememcard'. It now does some error
+	checking, and is installed by `make install'.
+
+	* PD ROM is now builtin. Also added `-p' option, to force use of
+	it (useful for booting a file), and made boot-file code less
+	reliant on people being clueful. :-)
+
+	* common.c: now assumes nc100.{card,ram,rom} are in ~/nc100.
+	Changed zcndisk similarly.
+
+	* common.c: if USE_MMAP_FOR_CARD is defined, it now uses mmap() to
+	read/write the card image. This means a faster start/stop, and it
+	should only read the card when it needs to (this is certainly the
+	case on Linux, anyway). I considered using this approach to
+	loading the ROM too, but it doesn't seem worth the hassle for that
+	somehow.
+
+1999-04-09  Russell Marks  <rus@lifeson>
+
+	* main.c: svgalib version now supports a larger display. Use
+	page-up to get the leftmost 320x64 part of the screen in 320x200
+	mode, page-down to see the rightmost 320x64 similarly, and end to
+	return to the usual display.
+
+1999-04-02  Russell Marks  <rus@lifeson>
+
+	* z80.c: reordered an if() in the TTY_SERIAL code to short-cut out
+	earlier in most cases, making it roughly 2% faster. Also changed a
+	couple of mainloop()'s unsigned char vars to unsigned ints, which
+	resulted in a ~4% speed-up. (It's possible the latter is
+	alignment-related and is only helpful on 486s, but I imagine it's
+	unlikely to hurt much on other machines. Besides, most machines
+	these days will easily run nc100em full-speed either way, so
+	optimising for 486s wouldn't be a bad idea. ;-))
+
+1999-03-31  Russell Marks  <rus@lifeson>
+
+	* Separated out much common code from nc100em/tnc100em/xnc100em
+	into common.c, and ANSIfied the code somewhat.
+
+	* main.c: now uses differential screen updating (only based on
+	whole lines, so it's a bit crude, but better than nothing), and
+	the whole screen is now black-on-white rather than just the
+	NC100-screen bit of it (i.e. the NC100's screen is surrounded by
+	white rather than black).
+
+	* Speed control now works. It goes at 4.606MHz with real-time
+	interrupts if it can - if it can't, it slows down interrupts
+	to match, which should avoid breaking anything overly
+	sensitive on the emulated NC. (FWIW, my 66MHz 486 runs nc100em
+	at about two-thirds speed, so if you have a remotely modern
+	computer it should run just fine. :-)) Also, fixed the old
+	problem of disabled interrupts disabling screen/keyboard
+	update.
+
+1999-02-27  Russell Marks  <rus@lifeson>
+
+	* Fixed main.c and xmain.c to not assume struct sigaction's
+	sa_mask can be zeroed with a simple `=0' (this fix needed for
+	glibc).
+
+1999-02-15  Russell Marks  <rus@lifeson>
+
+	* main.c: now uses svgalib's raw keyboard support.
+
+1999-01-05  Russell Marks  <rus@lifeson>
+
+	* Added `romdump' directory.
+
+	* main.c (and xmain.c): kludged it so that if ROM v1.00 is loaded,
+	it patches the ROM to not use an is-time-set test which would be
+	no fun at all to emulate. (v1.00 seems to be very pedantic about
+	the time being set, unlike v1.06.)
+
+Tue Oct 14 00:59:16 1997  Russell Marks  <rus@lifeson>
+
+	* nc100rom.z: fixed a stupid bug where A was corrupted by the
+	power-on context restoring routine.
+
+Sat Feb  1 01:23:11 1997  Russell Marks  <rus@lifeson>
+
+	* Version 0.1.
+
+Fri Nov 22 00:25:45 1996  Russell Marks  <rus@lifeson>
+
+	* z80.c: fixed problem which surfaced running zselx. Previously it
+ 	didn't store up interrupts received while ints were disabled. Also
+ 	made it avoid redisplaying screen twice when an int happens in the
+ 	middle of a DD/FD instruction (and is thus delayed until after the
+	completion of the whole instruction).
+
+Thu Aug 29 13:43:00 1996  Russell Marks  <rus@lifeson>
+
+	* main.c: made tnc100em hold down shifts twice as long. It was a
+	bit dodgy as was.
+
+Thu Jul  4 01:04:15 1996  Russell Marks  <rus@lifeson>
+
+	* main.c: (and xmain.c) made serial support much better.
+
+	* xmain.c: added, based on main.c - X version.
+
+Wed Jul  3 16:12:11 1996  Russell Marks  <rus@lifeson>
+
+	* main.c: added real-time-clock support (read-only, of course).
+
+	* z80.c: fixed the Big Bug (tm). It was interrupting half-way
+	through dd/fd-type instructions.
+
+Sun Mar 24 19:02:12 1996  Russell Marks  <rus@lifeson>
+
+	* main.c: found an embarrassing bug. (There was an '#ifdef' which
+ 	should have read '#ifndef'.)
+
+Mon Feb 26 02:07:29 1996  Russell Marks  <rus@lifeson>
+
+	* nc100rom.z: created. It's a PD replacement ROM I hacked up which
+	is just capable enough to run ZCN nicely.
+
+	* Serial mostly working. Slows it down a lot. :-( Also, when a
+	process writing exits, you get a spurious char.
+
+	* Got the ROM software working. Still have serial and time chip
+	emulation to do.
+
+Sun Feb 25 23:25:06 1996  Russell Marks  <rus@lifeson>
+
+	* Adapted from Z81 (which was in turn adapted from my svgalib port
+	of xz80).

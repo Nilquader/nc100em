@@ -1,0 +1,27 @@
+zcntools currently completely ignores nc200.card. Should have `-2'
+option for all those too, *eventually*, to make them use that. I say
+eventually, as this isn't terribly urgent - ZCN itself is well broken
+on the NC200 atm. :-)
+
+
+romdump doesn't support the NC200 yet - it should.
+
+
+Probably the most important other pending thing (Lapcat support) is in
+the README, under `Future developments'.
+
+
+The X versions should probably unpress all keys when they lose
+keyboard focus. This is a bigger problem than it first appears - using
+alt-tab to switch away then back results in the keyboard mysteriously
+`hanging' - because alt (= symbol) is pressed. :-)
+
+
+There's a strange bug to do with serial input when running bbcbas,
+which I haven't yet been able to figure out - see BUGS section in the
+man page.
+
+(I *think* this may be due to bbcbas keeping interrupts off so much
+(IIRC). This probably means that, since it'll keep trying to interrupt
+every instruction, serial_input_pending() gets called a LOT. Slightly
+tricky to fix though.)

@@ -1,0 +1,25 @@
+Notes on GTK+
+-------------
+
+You need GTK+ to compile gnc100em. I'm not entirely sure how old a
+version of GTK+ gnc100em will work with - what I *can* say is that I
+know it works with >=1.2.2, and I suspect it might not work with
+1.0.x.
+
+Note that, if your copy of GTK+ is from a Linux distribution rather
+than from the net, it'll most likely be split up into two packages -
+one with enough to run precompiled programs (shared libs), and a
+`devel' one with header files, `gtk-config', etc. (For example, in
+Debian 2.2 these are called `libgtk1.2' and `libgtk1.2-dev'
+respectively.) As may be obvious, you need *both* installed before you
+can compile a GTK+ program.
+
+If you don't know which version of GTK+ you have installed, or if you
+don't know whether you have it installed or not, try `gtk-config
+--version'. (If that fails, you don't have GTK+ installed; or at
+least, you certainly don't have enough installed to compile stuff.)
+
+If you haven't got GTK+, or you seem to need a newer version, try
+looking on http://www.gtk.org/.
+
+-Rus.

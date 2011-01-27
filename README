@@ -1,0 +1,200 @@
+nc100em 1.2 - a family of Amstrad NC100/NC200 emulators:
+
+  gnc100em - (for X) a GTK+-based version (the best, IMHO :-))
+  snc100em - an svgalib version
+  tnc100em - a tty-based version (only runs ZCN)
+  xnc100em - (for X) an Xlib-based version (NC100 only)
+
+Z80 emulation and Xlib code from `xz80', copyright (C) 1994 Ian Collier.
+nc100em changes (C) 1995-2001 Russell Marks.
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+
+ROM issues
+----------
+
+The `pdrom.bin' provided here (written by me) is a public domain
+replacement ROM which is capable of booting ZCN (my free CP/M-like OS
+for the NC100), context saving and restoring, and nothing else -
+useful for ZCN, but useless if you want to run the ROM software. (ZCN
+is available from http://rus.members.beeb.net/zcn.html or
+ftp://ftp.ibiblio.org/pub/packages/zcn/.)
+
+No Amstrad code is involved if you run ZCN using the PD ROM, so
+there's no need to own an NC100 to do that.
+
+However, if you do own an NC100, you should be able to copy the
+original Amstrad ROM for your own personal use with the emulator
+(which is capable of running the ROM software) using `romdump' (see
+the README in the romdump directory), but it's up to you to correctly
+observe copyright law. I'm no lawyer.
+
+`romdump' won't yet dump the NC200's ROM, I'm afraid. :-(
+
+
+Roadmap
+-------
+
+The COPYING file contains a copy of the GPL described above.
+
+The NEWS file describes the changes made between versions - so if
+you're upgrading from a previous version, be sure to read that.
+
+ChangeLog is similar to NEWS, but more hacker-orientated. :-)
+
+
+Description
+-----------
+
+nc100em is an Amstrad NC100 emulator. (It also has NC200 support, but
+this is less complete.) It supports both the ROM software and my free
+CP/M-like replacement OS `ZCN'. There are actually four separate
+versions:
+
+- gnc100em, a GTK+-based version for X;
+
+- snc100em, which runs under svgalib on a Linux console (using only
+  generic VGA modes, so it should work on any VGA card);
+
+- tnc100em, which runs on any tty (but only works with ZCN);
+
+- xnc100em, an Xlib-based version for X (emulates NC100 only).
+
+snc100em obviously requires Linux. The GTK+ and Xlib versions should
+work on any POSIX-ish Unix box with X (and GTK+, in the former case),
+though I've only tested it under Linux. tnc100em should run on
+anything those two run on, except it doesn't need X. :-)
+
+Associated programs also included are `makememcard', a simple shell
+script to make a blank memory card image, and `zcntools', an
+mtools-like set of utils for reading/writing memory card images in ZCN
+format.
+
+
+Installation
+------------
+
+If you want to compile the GTK+ version (you probably do :-)) then
+you'll (obviously) need GTK+ installed. See GTK_NOTES for more on
+this.
+
+You'll need an ANSI C compiler. `gcc' is fine - so should most other
+compilers be, these days.
+
+Check/edit the Makefile first - if you're compiling the Xlib version,
+you may need to change XROOT, for example, and you may want to change
+SCALE. But if you're running Linux, it should be ok as-is.
+
+Then do one of these:
+
+(Yes, sorry, there are *many* combinations... :-) Note that most of
+these will require GTK+ installed to work; if you don't have it and
+don't want to install it, use the `xlib', `tty', or `vga' target.)
+
+- `make', to make all versions (Linux only).
+- `make x', to make only the GTK+, Xlib, and tty versions.
+- `make gtk', to make only the GTK+ and tty versions.
+- `make xlib', to make only the Xlib and tty versions.
+- `make tty', to make only the tty version.
+- `make vga', to make only the svgalib and tty versions (Linux only).
+
+After compiling, do (as root) `make install', which installs any
+programs compiled.
+
+`z80.c' will take a little while to compile on slower/older machines,
+and the gcc process gets pretty big. Don't worry about this, it's
+simply because of the mind-bending - and above all, fast - way the Z80
+emulator works. I don't know why I still bother mentioning this, 'cos
+you'll barely notice it on a modern machine. :-)
+
+See the man page (when installed) for details of how to setup nc100em,
+how to use it, etc. - and it's important to read it, as you *have* to
+set the thing up before you'll be able to do anything in the emulator.
+
+
+Which version to use
+--------------------
+
+The management summary on this one is `use the GTK+ version'. :-)
+
+But seriously, with so many versions, you may wonder which is best to
+use. I mean, if you use X, you have three different ones to choose
+from! Personally, I like gnc100em best (as you may have twigged), and
+it's my preferred version. However, xnc100em is *slightly* more
+efficient (there's not as much in it as you'd think), so if you have a
+relatively slow machine you may prefer that, or the svgalib-based
+snc100em (which is probably the most efficient version). And of
+course, snc100em is the best choice if you don't/can't use X, or don't
+like it. :-)
+
+Generally you should only use tnc100em as a last resort; the
+main exception to this is that, when doing hackish ZCN stuff, not
+having to bother with the NC100's awkwardly-shaped screen and small
+text can be a definite advantage. (Using gnc100em with `-s' can be
+just as good for this though.)
+
+
+History
+-------
+
+I decided to write a NC100 emulator on February 26th 1996. For some
+reason. :-)
+
+Thanks to the GNU GPL, I could use Ian Collier's Z80 emulator from
+xz80, a ZX Spectrum emulator for X, and replace the X and Spectrum
+support code with that for svgalib and the NC100, as I did with my
+ZX81 emulator Z81. (I did the X and tty versions later.) And here I am
+writing the README the following evening (again). This is an argument
+for open source. :-)
+
+I give Ian the main author credit for nc100em, as the Z80 emulation is
+much harder to do than emulating the NC100's hardware etc. However,
+any correspondence regarding nc100em should be to me, as Ian hasn't
+had anything else to do with it and may not appreciate being hassled
+by NC100 fans. :-)
+
+
+Future developments
+-------------------
+
+While nc100em is a fairly pointless hack, and not generally a big
+priority for me, feel free to try and prod me into making it better,
+if you want. :-)
+
+One possible future development - I'm vaguely planning Lapcat support,
+to make file transfer to/from the ROM software possible. Actually, the
+Lapcat stuff itself would be pretty trivial, the tricky bit would be
+doing the file transfer in a tolerably elegant way. (Differentiating
+Lapcat I/O from normal printer output would be a bit hairy, but
+probably not that hard in practice.)
+
+
+On a rather different subject, I may well drop the Xlib version before
+long; I don't like maintaining two different X versions when I
+like/use/understand :-) one so much more than the other. If you use
+xnc100em, let me know - I'll leave it in if anyone really wants it.
+
+
+
+Contacting me
+-------------
+
+You can email me at russell.marks@ntlworld.com.
+
+
+Share and enjoy! 
+
+-Rus.

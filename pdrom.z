@@ -1,0 +1,191 @@
+;nc100rom.z - public domain by RJM 960226
+
+;a quick and dirty NC100 rom replacement capable of running ZCN,
+; and almost certainly nothing else.
+;even then, this only correctly boots ZCN v0.4 and above.
+;this is probably rather nc100em-specific.
+; (but how many other NC100 emulators are there? :-))
+
+org 0c000h
+
+magic1	equ 0deafh
+magic2	equ 0cafeh
+magicpos equ 0b200h	;don't change, common.c depends on it!
+
+;DO NOT ALTER BEFORE 'poweroff' WITHOUT THINKING VERY VERY HARD...
+
+;we boot at 0
+di
+xor a
+out (013h),a	;page in at top
+jp boot
+
+boot:
+;now setup ram in bottom 3 slots
+ld a,040h
+out (010h),a
+inc a
+out (011h),a
+inc a
+out (012h),a
+
+;screen at f000h
+ld a,0f0h
+out (0),a
+
+;all irqs masked out for now
+xor a
+out (060h),a
+;and ack any ints which are there somehow
+out (090h),a
+
+jp boot2
+
+;we want the power-off handling stuff at c0bdh. waste
+;space to get there.
+defw 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
+defw 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
+defw 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
+defw 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
+defw 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
+
+
+;this must be at c0bdh.
+;we use the same vars to context save as the real ROM
+; (see nciospec.doc for details)
+poweroff:
+di		;just in case
+ld (0b00ch),bc
+ld (0b00eh),de
+ld (0b010h),hl
+ld (0b012h),ix
+ld (0b014h),iy
+push af
+pop hl
+ld (0b00ah),hl
+
+;alternates
+exx
+ld (0b01ch),bc
+ld (0b01eh),de
+ld (0b020h),hl
+push af
+pop hl
+ld (0b01ah),hl
+exx
+
+;mem state
+in a,(010h)
+ld (0b022h),a
+in a,(011h)
+ld (0b023h),a
+in a,(012h)
+ld (0b024h),a
+;in (013h) will be 0, which isn't what we want. ZCN put a copy
+;of it at b005h before paging in ROM - use that.
+ld a,(0b005h)
+ld (0b025h),a
+
+;don't bother with pc/sp as ZCN does them
+
+;put magic number in place.
+ld hl,magic1
+ld (magicpos),hl
+ld hl,magic2
+ld (magicpos+2),hl
+
+;all saved, so stop.
+xor a
+out (070h),a
+
+;just in case... :-)
+infyloop: jr infyloop
+
+
+poweron:
+di		;just in case
+ld sp,0b1feh
+
+;first, get rid of magic number
+ld hl,0
+ld (magicpos),hl
+ld (magicpos+2),hl
+
+ld hl,(0b00ah)
+push hl
+pop af
+ld bc,(0b00ch)
+ld de,(0b00eh)
+ld hl,(0b010h)
+ld ix,(0b012h)
+ld iy,(0b014h)
+
+;alternates
+exx
+ld hl,(0b01ah)
+push hl
+pop af
+ld bc,(0b01ch)
+ld de,(0b01eh)
+ld hl,(0b020h)
+exx
+
+push af
+
+;mem state
+ld a,(0b022h)
+out (010h),a
+ld a,(0b023h)
+out (011h),a
+ld a,(0b024h)
+out (012h),a
+;not the last one, obviously... :-)
+
+;again, don't bother with pc/sp as ZCN does them
+
+;the real rom jumps to 077h after all that - do the same
+;it wants a=byte to write to port 13h and real af on the stack
+ld a,(0b025h)
+jp 077h
+
+
+
+boot2:
+;see if we powered off before - if not, jump to 0100h
+ld hl,(magicpos)
+ld de,magic1
+and a
+sbc hl,de
+jp nz,boot3
+
+ld hl,(magicpos+2)
+ld de,magic2
+and a
+sbc hl,de
+jp nz,boot3
+
+;ok, we have context to restore. do that.
+jp poweron
+
+
+boot3:
+;safety feature:
+;if (100h)!=0f3h (the di at the start of ZCN's boot.z), turn off.
+ld a,(0100h)
+cp 0f3h
+jr z,boot4
+
+xor a
+out (070h),a
+infylp2: jp infylp2
+
+boot4:
+;ok, put f7h at 66h to make it think it's running under ZCN, and go.
+ld a,0f7h
+ld (066h),a
+jp 0100h
+
+
+;finally, a rom version string to make ZCN's 'ver' happy.
+;the '(' is what ZCN uses as an end marker (normally '(C) foobar').
+defb 'ROM v1.0 [PD ROM for nc100em] ('
