@@ -4,6 +4,9 @@
  * debug.h
  */
 
+#ifndef DEBUG_H
+#define DEBUG_H
+
 #define fetch(x) (memptr[(unsigned short)(x)>>14][(x)&16383])
 
 #define REG_HL 0
@@ -18,22 +21,6 @@ typedef struct _z80regs {
 	unsigned short *ix, *iy;
 } z80regs;
 
-// disassembler tables
-char decode_r[][7]   = {"B", "C", "D", "E", "H", "L", "(HL)", "A",
-                        "B", "C", "D", "E", "IXH", "IXL", "(IX+d)", "A",
-                        "B", "C", "D", "E", "IYH", "IYL", "(IY+d)", "A"};
-char decode_rp[][3]  = {"BC", "DE", "HL", "SP", "BC", "DE", "IX", "SP", "BC", "DE", "IY", "SP"};
-char decode_rp2[][3] = {"BC", "DE", "HL", "AF", "BC", "DE", "IX", "SP", "BC", "DE", "IY", "SP"};  
-char decode_cc[][3]  = {"NZ", "Z", "NC", "C", "PO", "PE", "P", "M"};
-char decode_alu[][7] = {"ADD A,", "ADC A,", "SUB ", "SBC A,", "AND ", "XOR ", "OR ", "CP "};
-char decode_rot[][4] = {"RLC", "RRC", "RL", "RR", "SLA", "SRA", "SLL", "SRL"};
-char decode_im[][4]  = {"0", "0/1", "1", "2"}; // interrupt mode
-char decode_bli[][5] = {"LDI", "CPI", "INI", "OUTI", "LDD", "CPD", "IND", "OUTD", "LDIR", "CPIR", "INIR", "OTIR", "LDDR", "CPDR", "INDR", "OTDR"};
-char decode_af[][5]  = {"RLCA", "RRCA", "RLA" ,"RRA", "DAA", "CPL", "SCF", "CCF"}; 
-char decode_var[][9] = {"RET", "EXX", "JP HL", "LD SP,HL"};
-char decode_ed7[][7] = {"LD I,A", "LD R,A", "LD A,I", "LD A,R", "RRD", "RLD", "NOP", "NOP"};
-char decode_idx[][4] = {"HL", "IX", "IY"};
-
 // Prototypendeklaration
 void debug(z80regs regs, int *breakflag);
 void readstr(char *prompt, char *stringvar, int maxlen);
@@ -43,3 +30,5 @@ int memload(char *filename, unsigned int addr);
 int memsave(char *filename, unsigned int addr, unsigned int length);
 void disasm(unsigned int startaddr, unsigned int length);
 int parsecmd(char *cmdln, int *cargs);
+
+#endif

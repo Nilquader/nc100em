@@ -22,7 +22,6 @@
 #include "common.h"
 #include "fdc.h"
 #include "z80.h"
-#include "debug.h"
 
 #define parity(a) (partable[a])
 

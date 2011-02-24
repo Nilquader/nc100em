@@ -16,6 +16,7 @@
  */
 
 #include "nc100em.h"
+#include "debug.h"
 
 #define Z80_quit  1
 #define Z80_NMI   2
