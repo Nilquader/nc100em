@@ -956,9 +956,10 @@ switch(*cmd_name)
   }
 printf("-based version of nc100em.\n\n");
 
-printf("usage: %s [-2hmps] [-r refresh_rate] [-S scale] "
+printf("usage: %s [-d25hmps] [-r refresh_rate] [-S scale] "
 	"[file_to_boot.bin]\n\n",cmd_name);
 printf("\n"
+"\t-d\truns NC100em in debug mode.\n"
 "\t-2\temulate an NC200, rather than an NC100.\n"
 "\t-5\temulate an NC150, rather than an NC100.\n"
 "\t-h\tthis usage help.\n"
@@ -989,8 +990,12 @@ int done=0;
 opterr=0;
 
 do
-  switch(getopt(argc,argv,"25hmpr:sS:"))
+  switch(getopt(argc,argv,"d25hmpr:sS:"))
     {
+    case 'd':
+      printf("running in debug mode...\n");
+      breakpoint=1;
+      break;
     case '2':
       nc200=1;
       nc150=0;

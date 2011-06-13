@@ -689,6 +689,7 @@ if(scount==4) scount=0,serout_flush();
 int main(int argc,char *argv[])
 {
 /* parse cmdline options */
+breakpoint = 0;
 parseoptions(argc,argv);
 
 /* set scale from default in common.c */

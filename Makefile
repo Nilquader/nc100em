@@ -150,7 +150,7 @@ uninstall:
 	done
 
 clean:
-	$(RM) *.o *~ *.lst [gstx]nc100em zcntools
+	$(RM) *.o *~ *.lst [dgstx]nc100em zcntools
 	$(RM) mkpdromhdr pdrom.h
 
 

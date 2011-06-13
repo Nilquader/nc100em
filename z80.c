@@ -73,7 +73,7 @@ ixoriy=new_ixoriy=0;
 ix=iy=sp=pc=0;
 tstates=0;
 radjust=0;
-breakpoint=0;
+//breakpoint=0;
 
 // Initializing register set for debugger
 regs.a = &a;
